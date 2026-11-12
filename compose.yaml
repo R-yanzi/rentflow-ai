@@ -1,0 +1,39 @@
+services:
+  postgres:
+    build:
+      context: ./infra/postgres
+      dockerfile: Dockerfile
+
+    container_name: rentflow-postgres
+
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+    # 只绑定到本机回环地址，避免数据库端口暴露给局域网。
+    ports:
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+
+    volumes:
+      # 使用命名卷持久化数据库数据。
+      # 删除或重建容器不会自动删除数据。
+      - postgres_data:/var/lib/postgresql/data
+
+      # PostgreSQL 仅在数据目录首次初始化时执行这里的 SQL。
+      - ./infra/postgres/init:/docker-entrypoint-initdb.d:ro
+
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"',
+        ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

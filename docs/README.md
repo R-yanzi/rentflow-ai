@@ -1,0 +1,58 @@
+# RentFlow AI 文档中心
+
+本目录是 RentFlow AI 的产品与研发基线。开发前先确认需求编号、模块边界和当前里程碑，避免边写边扩展范围。
+
+## 文档索引
+
+| 文档 | 作用 | 主要读者 |
+|---|---|---|
+| [requirements.md](requirements.md) | 产品目标、功能需求、非功能需求、MVP 定义 | 产品、前后端、测试 |
+| [architecture.md](architecture.md) | 系统边界、模块划分、核心流程、多 Agent 原则 | 后端、架构、面试准备 |
+| [api-catalog.md](api-catalog.md) | 前后端接口目录、权限、实现状态 | 前端、后端、测试 |
+| [data-model.md](data-model.md) | 核心实体、表职责、关系与生命周期 | 后端、数据库 |
+| [frontend-plan.md](frontend-plan.md) | 租客端与运营端页面、组件、状态和迭代顺序 | 前端、产品 |
+| [development-roadmap.md](development-roadmap.md) | 分阶段开发任务、依赖关系、验收标准 | 项目开发者 |
+
+## 阅读顺序
+
+第一次了解项目：
+
+```text
+requirements
+  → architecture
+  → frontend-plan
+  → api-catalog
+  → data-model
+  → development-roadmap
+```
+
+开始一个开发任务：
+
+```text
+确认当前里程碑
+  → 找到对应 FR 编号
+  → 检查 API 和数据模型
+  → 实现最小闭环
+  → 测试验收
+  → 更新实现状态
+```
+
+## 状态定义
+
+| 状态 | 含义 |
+|---|---|
+| 规划中 | 已进入需求，但尚未进入当前里程碑 |
+| 待开发 | 前置条件满足，可以开始 |
+| 开发中 | 当前正在实现 |
+| 待验收 | 功能完成，等待测试与文档确认 |
+| 已完成 | 已满足验收标准 |
+| 暂缓 | 有意延后，不阻塞当前里程碑 |
+
+## 当前基线
+
+- 当前里程碑：M2 自然语言搜索闭环；
+- 已完成：工程基础、房源模型、结构化筛选、PostGIS 半径搜索、合成数据、DeepSeek 需求提取；
+- 当前目标：完成自然语言到确定性搜索的完整闭环并补齐异常测试；
+- 下一里程碑：M3 GIS、软偏好检索与多目标排序；
+- 当前不做：多 Agent、预约、认证、完整 RAG 管理后台。
+
