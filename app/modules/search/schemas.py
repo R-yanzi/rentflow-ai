@@ -2,7 +2,7 @@
 
 from datetime import date
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.modules.listings.schemas import ListingListResponse
 
@@ -20,7 +20,11 @@ class RentalRequirements(BaseModel):
 
     district: str | None = Field(
         default=None,
-        description="用户明确指定的居住区域",
+        description="用户指定的行政区，例如浦东新区",
+    )
+    area: str | None = Field(
+        default=None,
+        description="行政区下属租赁板块，例如张江、金桥",
     )
     max_rent: int | None = Field(
         default=None,
@@ -58,6 +62,24 @@ class RentalRequirements(BaseModel):
         max_length=10,
         description="安静、采光好等不能直接作为硬条件的软偏好",
     )
+
+    @field_validator("district")
+    @classmethod
+    def normalize_district(cls, value: str | None) -> str | None:
+        """把常见行政区别名转换为项目使用的标准名称。
+
+        当前仅维护 MVP 已支持的浦东新区。
+        M3 阶段会迁移到标准地点实体和别名表。
+        """
+
+        if value is None:
+            return None
+
+        aliases = {
+            "浦东": "浦东新区",
+            "浦东区": "浦东新区",
+        }
+        return aliases.get(value, value)
 
 
 class RequirementParseRequest(BaseModel):

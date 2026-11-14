@@ -1,0 +1,26 @@
+/* 统一浏览器默认盒模型，避免尺寸计算差异。 */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  color: #303133;
+  background: #f5f7fa;
+  font-family: Inter, 'PingFang SC', 'Microsoft YaHei', Arial, sans-serif;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}

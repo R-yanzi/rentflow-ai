@@ -37,6 +37,7 @@ class StubLLMProvider:
         return response_model.model_validate(
             {
                 "district": None,
+                "area": None,
                 "max_rent": 5000,
                 "bedrooms": 1,
                 "pets_allowed": True,
@@ -108,3 +109,58 @@ def test_natural_language_search_pipeline() -> None:
         "preferences",
     ]
     assert response.headers["X-Request-ID"]
+
+
+class FailIfCalledLLMProvider:
+    """确认搜索中只要调用 LLM，测试就应该立即失败。"""
+
+    async def generate_structured(
+        self,
+        *,
+        system_prompt: str,
+        user_prompt: str,
+        response_model: type[StructuredModel],
+    ) -> StructuredModel:
+        raise AssertionError("Confirmed search must not call the LLM")
+
+
+def provide_failing_llm() -> LLMProvider:
+    """提供一个禁止调用的 LLM Provider。"""
+    return FailIfCalledLLMProvider()
+
+
+def test_confirmed_requirement_search_does_not_call_llm() -> None:
+    """用户确认后的条件应该直接进入确定性搜索。"""
+
+    application = create_app()
+
+    # 如果接口错误地再次调用 LLM，FailIfCalledLLMProvider 会使测试失败。
+    application.dependency_overrides[get_llm_provider] = provide_failing_llm
+    application.dependency_overrides[get_listing_service] = provide_stub_listing_service
+
+    with TestClient(application) as client:
+        response = client.post(
+            "/api/v1/search/listings/confirmed",
+            json={
+                "district": None,
+                "area": None,
+                "max_rent": 5000,
+                "bedrooms": 1,
+                "pets_allowed": True,
+                "available_before": None,
+                "work_location": "张江",
+                "max_commute_minutes": 40,
+                "preferences": ["安静"],
+            },
+        )
+
+    body = response.json()
+
+    assert response.status_code == 200
+    assert body["requirements"]["max_rent"] == 5000
+    assert body["results"]["total"] == 0
+    assert body["unresolved_requirements"] == [
+        "work_location",
+        "max_commute_minutes",
+        "preferences",
+    ]

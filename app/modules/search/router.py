@@ -16,6 +16,7 @@ from app.modules.search.schemas import (
 from app.modules.search.service import (
     NaturalLanguageListingSearchService,
     RentalRequirementService,
+    search_confirmed_requirements,
 )
 from app.providers.llm.base import LLMProvider
 from app.providers.llm.dependencies import get_llm_provider
@@ -75,4 +76,23 @@ async def natural_language_listing_search(
     return await search_service.search(
         session=session,
         user_text=request.text,
+    )
+
+
+@router.post(
+    "/listings/confirmed",
+    response_model=NaturalLanguageSearchResponse,
+    summary="使用已确认的结构化条件搜索房源",
+)
+async def confirmed_requirement_listing_search(
+    requirements: RentalRequirements,
+    session: DatabaseSession,
+    listing_service: ListingServiceDependency,
+) -> NaturalLanguageSearchResponse:
+    """使用用户确认后的条件执行搜索，不再次调用大模型。"""
+
+    return await search_confirmed_requirements(
+        session=session,
+        listing_service=listing_service,
+        requirements=requirements,
     )

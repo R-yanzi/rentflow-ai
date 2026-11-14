@@ -44,8 +44,8 @@ def build_listing_search_params(
         available_before=requirements.available_before,
         limit=20,
         offset=0,
+        area=requirements.area,
     )
-
 
 def collect_unresolved_requirements(
     requirements: RentalRequirements,
@@ -66,6 +66,32 @@ def collect_unresolved_requirements(
     return unresolved
 
 
+async def search_confirmed_requirements(
+    *,
+    session: AsyncSession,
+    listing_service: ListingService,
+    requirements: RentalRequirements,
+) -> NaturalLanguageSearchResponse:
+    """使用已经确认的结构化条件执行确定性房源搜索。
+
+    此函数不得调用 LLM。用户确认后的 requirements
+    是后续搜索流程的唯一事实来源。
+    """
+
+    search_params = build_listing_search_params(requirements)
+
+    results = await listing_service.search(
+        session,
+        search_params,
+    )
+
+    return NaturalLanguageSearchResponse(
+        requirements=requirements,
+        results=results,
+        unresolved_requirements=collect_unresolved_requirements(requirements),
+    )
+
+
 class NaturalLanguageListingSearchService:
     """编排需求提取与确定性房源查询。"""
 
@@ -82,18 +108,12 @@ class NaturalLanguageListingSearchService:
         session: AsyncSession,
         user_text: str,
     ) -> NaturalLanguageSearchResponse:
-        """解析需求并调用已有房源查询能力。"""
+        """解析自然语言，然后执行确定性房源查询。"""
 
         requirements = await self._requirement_service.extract(user_text)
-        search_params = build_listing_search_params(requirements)
 
-        results = await self._listing_service.search(
-            session,
-            search_params,
-        )
-
-        return NaturalLanguageSearchResponse(
+        return await search_confirmed_requirements(
+            session=session,
+            listing_service=self._listing_service,
             requirements=requirements,
-            results=results,
-            unresolved_requirements=collect_unresolved_requirements(requirements),
         )

@@ -75,7 +75,15 @@ class Listing(Base):
         nullable=False,
     )
 
+    # 行政区，例如“浦东新区”。
     district: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False,
+        index=True,
+    )
+
+    # 行政区下属板块，例如“张江”“金桥”。
+    area: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
         index=True,

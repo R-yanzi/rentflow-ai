@@ -23,21 +23,26 @@ from app.modules.listings.models import Listing
 
 
 @dataclass(frozen=True)
-class DistrictProfile:
-    """区域数据生成规则。"""
+class AreaProfile:
+    """租赁板块的数据生成规则。"""
 
-    name: str
+    # 行政区，例如“浦东新区”“静安区”。
+    district: str
+
+    # 行政区下属板块，例如“张江”“静安寺”。
+    area: str
+
     longitude: float
     latitude: float
     base_rent: int
 
 
-DISTRICTS = (
-    DistrictProfile("张江", 121.606, 31.204, 2_500),
-    DistrictProfile("金桥", 121.602, 31.257, 2_200),
-    DistrictProfile("唐镇", 121.657, 31.214, 1_800),
-    DistrictProfile("北蔡", 121.558, 31.180, 2_300),
-    DistrictProfile("川沙", 121.699, 31.186, 1_600),
+AREAS = (
+    AreaProfile("浦东新区", "张江", 121.606, 31.204, 2_500),
+    AreaProfile("浦东新区", "金桥", 121.602, 31.257, 2_200),
+    AreaProfile("浦东新区", "唐镇", 121.657, 31.214, 1_800),
+    AreaProfile("浦东新区", "北蔡", 121.558, 31.180, 2_300),
+    AreaProfile("浦东新区", "川沙", 121.699, 31.186, 1_600),
 )
 
 ORIENTATIONS = ("南", "东南", "东", "西", "北")
@@ -58,7 +63,7 @@ def generate_listing(
 ) -> Listing:
     """按照约束关系生成一套房源。"""
 
-    district = rng.choice(DISTRICTS)
+    area_profile = rng.choice(AREAS)
     bedrooms = rng.choice(BEDROOM_WEIGHTS)
     orientation = rng.choice(ORIENTATIONS)
 
@@ -71,17 +76,17 @@ def generate_listing(
 
     # 在区域中心附近约几公里范围内生成坐标。
     longitude = round(
-        district.longitude + rng.uniform(-0.03, 0.03),
+        area_profile.longitude + rng.uniform(-0.03, 0.03),
         6,
     )
     latitude = round(
-        district.latitude + rng.uniform(-0.03, 0.03),
+        area_profile.latitude + rng.uniform(-0.03, 0.03),
         6,
     )
 
     # 租金由区域、面积、户型、地铁距离和随机扰动共同决定。
     raw_rent = (
-        district.base_rent
+        area_profile.base_rent
         + area * 38
         + bedrooms * 250
         - subway_distance * 0.15
@@ -101,7 +106,7 @@ def generate_listing(
     pet_description = "允许饲养宠物" if pets_allowed else "暂不允许饲养宠物"
 
     description = (
-        f"{district.name}{orientation}向{room_name}，"
+        f"{area_profile.area}{orientation}向{room_name}，"
         f"{noise_description}，"
         f"距离地铁约{subway_distance}米，"
         f"{pet_description}。"
@@ -115,8 +120,10 @@ def generate_listing(
 
     return Listing(
         id=listing_id,
-        title=f"{district.name}{orientation}向{room_name}-{index + 1:03d}",
-        district=district.name,
+        title=f"{area_profile.area}{orientation}向{room_name}-{index + 1:03d}",
+        # 行政区与板块分别保存。
+        district=area_profile.district,
+        area=area_profile.area,
         monthly_rent=monthly_rent,
         bedrooms=bedrooms,
         area_sqm=Decimal(str(area)),

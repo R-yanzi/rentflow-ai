@@ -12,6 +12,7 @@
 | [data-model.md](data-model.md) | 核心实体、表职责、关系与生命周期 | 后端、数据库 |
 | [frontend-plan.md](frontend-plan.md) | 租客端与运营端页面、组件、状态和迭代顺序 | 前端、产品 |
 | [development-roadmap.md](development-roadmap.md) | 分阶段开发任务、依赖关系、验收标准 | 项目开发者 |
+| [engineering-issues.md](engineering-issues.md) | 重大工程问题、解决方案、预防清单与面试复盘 | 项目开发者、面试准备 |
 
 ## 阅读顺序
 

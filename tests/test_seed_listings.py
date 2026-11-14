@@ -42,3 +42,11 @@ def test_generated_listing_obeys_business_constraints() -> None:
     assert listing.subway_distance_m is not None
     assert listing.subway_distance_m >= 0
     assert listing.status == "available"
+    assert listing.district == "浦东新区"
+    assert listing.area in {
+        "张江",
+        "金桥",
+        "唐镇",
+        "北蔡",
+        "川沙",
+    }

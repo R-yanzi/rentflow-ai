@@ -8,27 +8,30 @@ from app.modules.search.service import (
 
 
 def test_requirements_are_mapped_to_hard_filters() -> None:
-    """确定性条件应该被转换成数据库查询参数。"""
+    """行政区、板块和其他硬条件应该转换成数据库查询参数。"""
 
     requirements = RentalRequirements(
+        district="浦东",
+        area="张江",
         max_rent=5_000,
         bedrooms=1,
         pets_allowed=True,
-        work_location="张江",
+        work_location="陆家嘴",
         max_commute_minutes=40,
         preferences=["安静"],
     )
 
     params = build_listing_search_params(requirements)
 
+    # 常见别名应在进入数据库查询之前规范化。
+    assert params.district == "浦东新区"
+    assert params.area == "张江"
     assert params.max_rent == 5_000
     assert params.bedrooms == 1
     assert params.pets_allowed is True
 
-    # 工作地点和软偏好尚不能直接转成 SQL 条件。
     assert params.longitude is None
     assert params.radius_m is None
-
 
 def test_unresolved_requirements_are_explicit() -> None:
     """系统不能悄悄忽略尚未支持的需求。"""

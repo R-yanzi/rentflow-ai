@@ -46,6 +46,7 @@ RentFlow AI 是一个企业级智能租赁 Agent 平台。当前后端项目位�
    - Agent Tool Calling、MCP 和工具权限；
    - Prompt Injection、数据隔离、RBAC 和高风险操作审批；
    - SSE 流式响应、幂等性、限流、缓存和可观测性。
+5. 开发过程中出现具有复用价值的工程问题时，由 AI 维护 `docs/engineering-issues.md`，记录现象、根因、解决方案、预防措施和面试表达；普通拼写错误或一次性操作失误不纳入该文档。
 
 ## 项目范围控制
 

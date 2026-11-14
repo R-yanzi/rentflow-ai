@@ -47,6 +47,7 @@ class ListingRepository:
             subway_distance_m=data.subway_distance_m,
             description=data.description,
             location=location,
+            area=data.area,
         )
 
         session.add(listing)
@@ -77,9 +78,6 @@ class ListingRepository:
         # 默认只向租客展示可租状态的房源。
         conditions = [Listing.status == "available"]
 
-        if params.district is not None:
-            conditions.append(Listing.district == params.district)
-
         if params.max_rent is not None:
             conditions.append(Listing.monthly_rent <= params.max_rent)
 
@@ -91,6 +89,12 @@ class ListingRepository:
 
         if params.available_before is not None:
             conditions.append(Listing.available_date <= params.available_before)
+
+        if params.district is not None:
+            conditions.append(Listing.district == params.district)
+
+        if params.area is not None:
+            conditions.append(Listing.area == params.area)
 
         # 没有位置参数时，距离列统一返回 NULL。
         distance_expression = cast(

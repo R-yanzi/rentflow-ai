@@ -34,6 +34,7 @@ class StubLLMProvider:
         return response_model.model_validate(
             {
                 "district": None,
+                "area": None,
                 "max_rent": 5000,
                 "bedrooms": 1,
                 "pets_allowed": True,

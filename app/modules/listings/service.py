@@ -103,4 +103,5 @@ class ListingService:
             created_at=listing.created_at,
             updated_at=listing.updated_at,
             distance_m=round(distance_m, 2) if distance_m is not None else None,
+            area=listing.area,
         )

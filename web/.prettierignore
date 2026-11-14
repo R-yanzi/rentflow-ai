@@ -1,0 +1,6 @@
+# 构建产物
+dist/
+
+# 插件自动生成的类型声明，不进行人工格式化
+src/types/auto-imports.d.ts
+src/types/components.d.ts
