@@ -25,6 +25,18 @@ export interface RentalRequirements {
 }
 
 /**
+ * 使用已确认条件执行分页搜索的请求。
+ *
+ * requirements 是用户确认的业务条件；
+ * limit 和 offset 是本次列表查询的分页控制参数。
+ */
+export interface ConfirmedRequirementSearchRequest {
+  requirements: RentalRequirements
+  limit: number
+  offset: number
+}
+
+/**
  * 自然语言搜索的完整响应。
  */
 export interface NaturalLanguageSearchResponse {

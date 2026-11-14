@@ -1,36 +1,28 @@
 <script setup lang="ts">
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
 import RequirementChips from '@/modules/search/components/RequirementChips.vue'
 import RequirementInput from '@/modules/search/components/RequirementInput.vue'
-import ListingCard from '@/modules/listings/components/ListingCard.vue'
-import { parseRequirements, searchConfirmedListings } from '@/modules/search/api'
-import type { NaturalLanguageSearchResponse, RentalRequirements } from '@/modules/search/types'
+import { parseRequirements } from '@/modules/search/api'
+import { requirementsToQuery } from '@/modules/search/query'
+import type { RentalRequirements } from '@/modules/search/types'
+
+const router = useRouter()
 
 const isParsing = ref(false)
-const isSearching = ref(false)
-
 const parsedRequirements = ref<RentalRequirements | null>(null)
-const searchResult = ref<NaturalLanguageSearchResponse | null>(null)
 const errorMessage = ref('')
 
-/**
- * 解析和搜索不能同时执行，避免较慢的旧请求覆盖较新的页面状态。
- */
-const isBusy = computed(() => {
-  return isParsing.value || isSearching.value
-})
-
 async function handleParse(text: string): Promise<void> {
-  if (isBusy.value) {
+  if (isParsing.value) {
     return
   }
 
   isParsing.value = true
   parsedRequirements.value = null
-  searchResult.value = null
   errorMessage.value = ''
 
   try {
@@ -44,27 +36,18 @@ async function handleParse(text: string): Promise<void> {
 }
 
 async function handleConfirmedSearch(): Promise<void> {
-  if (!parsedRequirements.value || isBusy.value) {
+  if (!parsedRequirements.value || isParsing.value) {
     return
   }
 
-  isSearching.value = true
-  searchResult.value = null
-  errorMessage.value = ''
-
-  try {
-    /**
-     * 这里传递的是用户已经看到并确认的结构化条件，
-     * 不是原始自然语言，因此后端不会再次调用 DeepSeek。
-     */
-    searchResult.value = await searchConfirmedListings(parsedRequirements.value)
-
-    ElMessage.success('房源搜索完成')
-  } catch {
-    errorMessage.value = '房源搜索失败，请检查数据库和后端服务后重试。'
-  } finally {
-    isSearching.value = false
-  }
+  /**
+   * 搜索条件写进 URL，结果页会根据 URL 查询数据库。
+   * 这里不再提前请求一次，避免跳转后重复查询。
+   */
+  await router.push({
+    name: 'search-results',
+    query: requirementsToQuery(parsedRequirements.value, 1),
+  })
 }
 </script>
 
@@ -99,47 +82,13 @@ async function handleConfirmedSearch(): Promise<void> {
           type="primary"
           size="large"
           :icon="Search"
-          :loading="isSearching"
-          :disabled="isBusy"
+          :disabled="isParsing"
           @click="handleConfirmedSearch"
         >
           确认条件并搜索房源
         </el-button>
       </div>
     </template>
-
-    <section v-if="searchResult" class="search-summary" aria-live="polite">
-      <header class="search-summary__header">
-        <div>
-          <h2>搜索结果</h2>
-          <p>
-            共找到 {{ searchResult.results.total }} 套符合硬条件的房源， 当前展示
-            {{ searchResult.results.items.length }} 套。
-          </p>
-        </div>
-
-        <el-tag type="success" effect="plain"> 硬条件零违反 </el-tag>
-      </header>
-
-      <el-alert
-        v-if="searchResult.unresolved_requirements.length > 0"
-        type="warning"
-        title="以下条件当前尚未参与数据库筛选"
-        :description="searchResult.unresolved_requirements.join('、')"
-        :closable="false"
-        show-icon
-      />
-
-      <div v-if="searchResult.results.items.length > 0" class="listing-grid">
-        <ListingCard
-          v-for="listing in searchResult.results.items"
-          :key="listing.id"
-          :listing="listing"
-        />
-      </div>
-
-      <el-empty v-else description="没有完全满足当前硬条件的房源，后续将提供条件放宽建议" />
-    </section>
   </section>
 </template>
 <style scoped>
@@ -193,50 +142,5 @@ async function handleConfirmedSearch(): Promise<void> {
 .confirmation-actions p {
   margin: 0;
   color: #606266;
-}
-
-.search-summary {
-  margin-top: 32px;
-  padding: 16px 24px 24px;
-  border: 1px solid #e4e7ed;
-  border-radius: 16px;
-  background: #fff;
-}
-
-@media (width <= 600px) {
-  .confirmation-actions {
-    align-items: stretch;
-    flex-direction: column;
-  }
-}
-
-.search-summary__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-  margin-bottom: 24px;
-}
-
-.search-summary__header h2 {
-  margin: 0 0 8px;
-}
-
-.search-summary__header p {
-  margin: 0;
-  color: #606266;
-}
-
-.listing-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 20px;
-  margin-top: 24px;
-}
-
-@media (width <= 760px) {
-  .listing-grid {
-    grid-template-columns: 1fr;
-  }
 }
 </style>

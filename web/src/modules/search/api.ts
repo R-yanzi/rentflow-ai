@@ -4,6 +4,7 @@ import type {
   NaturalLanguageSearchResponse,
   RentalRequirements,
   RequirementParseRequest,
+  ConfirmedRequirementSearchRequest,
 } from './types'
 
 /**
@@ -36,11 +37,11 @@ export async function searchListings(
  * 该接口不会再次调用 LLM，避免确认条件与实际执行条件不一致。
  */
 export async function searchConfirmedListings(
-  requirements: RentalRequirements,
+  request: ConfirmedRequirementSearchRequest,
 ): Promise<NaturalLanguageSearchResponse> {
   const response = await httpClient.post<NaturalLanguageSearchResponse>(
     '/search/listings/confirmed',
-    requirements,
+    request,
   )
 
   return response.data

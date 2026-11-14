@@ -9,6 +9,7 @@ from app.db.session import get_db_session
 from app.modules.listings.dependencies import get_listing_service
 from app.modules.listings.service import ListingService
 from app.modules.search.schemas import (
+    ConfirmedRequirementSearchRequest,
     NaturalLanguageSearchResponse,
     RentalRequirements,
     RequirementParseRequest,
@@ -85,14 +86,16 @@ async def natural_language_listing_search(
     summary="使用已确认的结构化条件搜索房源",
 )
 async def confirmed_requirement_listing_search(
-    requirements: RentalRequirements,
+    request: ConfirmedRequirementSearchRequest,
     session: DatabaseSession,
     listing_service: ListingServiceDependency,
 ) -> NaturalLanguageSearchResponse:
-    """使用用户确认后的条件执行搜索，不再次调用大模型。"""
+    """使用用户确认后的条件执行分页搜索，不再次调用大模型。"""
 
     return await search_confirmed_requirements(
         session=session,
         listing_service=listing_service,
-        requirements=requirements,
+        requirements=request.requirements,
+        limit=request.limit,
+        offset=request.offset,
     )

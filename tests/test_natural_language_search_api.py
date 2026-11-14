@@ -142,15 +142,19 @@ def test_confirmed_requirement_search_does_not_call_llm() -> None:
         response = client.post(
             "/api/v1/search/listings/confirmed",
             json={
-                "district": None,
-                "area": None,
-                "max_rent": 5000,
-                "bedrooms": 1,
-                "pets_allowed": True,
-                "available_before": None,
-                "work_location": "张江",
-                "max_commute_minutes": 40,
-                "preferences": ["安静"],
+                "requirements": {
+                    "district": None,
+                    "area": None,
+                    "max_rent": 5000,
+                    "bedrooms": 1,
+                    "pets_allowed": True,
+                    "available_before": None,
+                    "work_location": "张江",
+                    "max_commute_minutes": 40,
+                    "preferences": ["安静"],
+                },
+                "limit": 10,
+                "offset": 10,
             },
         )
 
@@ -164,3 +168,5 @@ def test_confirmed_requirement_search_does_not_call_llm() -> None:
         "max_commute_minutes",
         "preferences",
     ]
+    assert body["results"]["limit"] == 10
+    assert body["results"]["offset"] == 10

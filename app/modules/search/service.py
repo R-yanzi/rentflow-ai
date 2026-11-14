@@ -33,19 +33,23 @@ class RentalRequirementService:
 
 def build_listing_search_params(
     requirements: RentalRequirements,
+    *,
+    limit: int = 20,
+    offset: int = 0,
 ) -> ListingSearchParams:
-    """将大模型输出映射成数据库能够执行的确定性条件。"""
+    """把已确认需求映射为数据库能够执行的确定性查询条件。"""
 
     return ListingSearchParams(
         district=requirements.district,
+        area=requirements.area,
         max_rent=requirements.max_rent,
         bedrooms=requirements.bedrooms,
         pets_allowed=requirements.pets_allowed,
         available_before=requirements.available_before,
-        limit=20,
-        offset=0,
-        area=requirements.area,
+        limit=limit,
+        offset=offset,
     )
+
 
 def collect_unresolved_requirements(
     requirements: RentalRequirements,
@@ -71,14 +75,16 @@ async def search_confirmed_requirements(
     session: AsyncSession,
     listing_service: ListingService,
     requirements: RentalRequirements,
+    limit: int = 20,
+    offset: int = 0,
 ) -> NaturalLanguageSearchResponse:
-    """使用已经确认的结构化条件执行确定性房源搜索。
+    """使用用户确认后的条件执行确定性、可分页的房源搜索。"""
 
-    此函数不得调用 LLM。用户确认后的 requirements
-    是后续搜索流程的唯一事实来源。
-    """
-
-    search_params = build_listing_search_params(requirements)
+    search_params = build_listing_search_params(
+        requirements,
+        limit=limit,
+        offset=offset,
+    )
 
     results = await listing_service.search(
         session,

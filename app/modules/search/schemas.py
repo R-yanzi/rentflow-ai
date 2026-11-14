@@ -94,6 +94,28 @@ class RequirementParseRequest(BaseModel):
     )
 
 
+class ConfirmedRequirementSearchRequest(BaseModel):
+    """使用已确认条件搜索房源的请求。
+
+    requirements 是用户确认后的唯一事实来源；
+    limit 和 offset 负责结果分页。
+    """
+
+    requirements: RentalRequirements
+
+    limit: int = Field(
+        default=20,
+        ge=1,
+        le=100,
+        description="本页返回的房源数量",
+    )
+    offset: int = Field(
+        default=0,
+        ge=0,
+        description="跳过的房源数量",
+    )
+
+
 class NaturalLanguageSearchResponse(BaseModel):
     """自然语言房源搜索结果。"""
 

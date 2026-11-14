@@ -33,6 +33,7 @@ def test_requirements_are_mapped_to_hard_filters() -> None:
     assert params.longitude is None
     assert params.radius_m is None
 
+
 def test_unresolved_requirements_are_explicit() -> None:
     """系统不能悄悄忽略尚未支持的需求。"""
 
