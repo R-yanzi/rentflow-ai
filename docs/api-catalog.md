@@ -60,7 +60,8 @@
 
 | 参数组 | 参数 | 说明 |
 |---|---|---|
-| 硬条件 | `district` | 居住区域 |
+| 硬条件 | `district` | 行政区，例如浦东新区 |
+| 硬条件 | `area` | 行政区下属板块，例如张江 |
 | 硬条件 | `max_rent` | 最高月租 |
 | 硬条件 | `bedrooms` | 卧室数 |
 | 硬条件 | `pets_allowed` | 是否允许宠物 |
@@ -76,7 +77,8 @@
 | 方法 | 路径 | 认证 | 功能 | 状态 |
 |---|---|---|---|---|
 | POST | `/search/requirements` | 可匿名 | 自然语言转结构化需求 | 已完成 |
-| POST | `/search/listings` | 可匿名 | 自然语言解析并查询房源 | 开发中 |
+| POST | `/search/listings` | 可匿名 | 自然语言解析并查询房源 | 已完成 |
+| POST | `/search/listings/confirmed` | 可匿名 | 使用用户已确认的结构化条件查询，不再次调用 LLM | 已完成 |
 | POST | `/search/sessions` | 租客/匿名会话 | 创建搜索会话 | 待开发 |
 | GET | `/search/sessions/{session_id}` | 会话所有者 | 获取搜索状态与条件 | 待开发 |
 | POST | `/search/sessions/{session_id}/messages` | 会话所有者 | 补充或修改需求 | 待开发 |
