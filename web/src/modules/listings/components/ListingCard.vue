@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Location, Van } from '@element-plus/icons-vue'
+import { ArrowRight, Location, Van } from '@element-plus/icons-vue'
 import { computed } from 'vue'
 
 import type { Listing } from '@/modules/listings/types'
@@ -84,6 +84,18 @@ const areaLabel = computed(() => {
       </el-tag>
     </div>
   </el-card>
+  <RouterLink
+    class="detail-link"
+    :to="{
+      name: 'listing-detail',
+      params: {
+        id: listing.id,
+      },
+    }"
+  >
+    查看房源详情
+    <el-icon><ArrowRight /></el-icon>
+  </RouterLink>
 </template>
 
 <style scoped>
@@ -174,5 +186,23 @@ const areaLabel = computed(() => {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
+}
+
+.detail-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 20px;
+  padding: 10px 16px;
+  border: 1px solid var(--el-color-primary);
+  border-radius: 8px;
+  color: var(--el-color-primary);
+  text-decoration: none;
+}
+
+.detail-link:hover {
+  color: #fff;
+  background: var(--el-color-primary);
 }
 </style>

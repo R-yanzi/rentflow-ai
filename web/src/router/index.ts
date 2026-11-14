@@ -25,6 +25,11 @@ const router = createRouter({
           name: 'search-results',
           component: () => import('@/views/SearchResultsView.vue'),
         },
+        {
+          path: 'listings/:id',
+          name: 'listing-detail',
+          component: () => import('@/views/ListingDetailView.vue'),
+        },
       ],
     },
   ],
