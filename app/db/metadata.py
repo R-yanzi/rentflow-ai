@@ -2,7 +2,13 @@
 
 from app.db.base import Base
 from app.modules.listings.models import Listing
+from app.modules.locations.models import Location, LocationAlias
 
-# 导出 Listing 可以明确告诉 Ruff：这个导入是有意为之。
-# 导入模型后，它对应的 Table 才会注册到 Base.metadata。
-__all__ = ["Base", "Listing"]
+# 只有导入模型后，对应的 Table 才会注册到 Base.metadata，
+# Alembic 才能自动检测这些表。
+__all__ = [
+    "Base",
+    "Listing",
+    "Location",
+    "LocationAlias",
+]
