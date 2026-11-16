@@ -101,9 +101,9 @@
 
 | 方法 | 路径 | 认证 | 功能 | 状态 |
 |---|---|---|---|---|
-| GET | `/locations/search` | 无 | 搜索上海地点目录 | 待开发 |
-| GET | `/locations/{location_id}` | 无 | 地点详情与坐标 | 待开发 |
-| POST | `/locations/resolve` | 内部/运营 | 文本地点标准化 | 待开发 |
+| GET | `/locations/search` | 无 | 搜索上海地点目录 | 已完成 |
+| GET | `/locations/{location_id}` | 无 | 地点详情与坐标 | 已完成 |
+| POST | `/locations/resolve` | 无 | 文本地点标准化与歧义候选 | 已完成 |
 | POST | `/commutes/estimate` | 用户 | 估算单条通勤 | 待开发 |
 | POST | `/commutes/batch` | 内部 | 批量计算候选房源通勤 | 待开发 |
 

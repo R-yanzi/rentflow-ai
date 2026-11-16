@@ -72,12 +72,14 @@ Embedding 不直接塞进 `listings`，便于模型升级、重建和多版本�
 
 | 字段组 | 内容 |
 |---|---|
-| 标识 | id、canonical_name、aliases |
-| 分类 | district、location_type |
+| 标识 | id、canonical_name、normalized_name |
+| 分类 | district、area、location_type、is_active |
 | 空间 | Geography(Point, 4326) |
-| 来源 | source、source_id、verified_at |
+| 来源 | source、source_id |
 
-`aliases` 用于“张江”“张江高科”等文本标准化。无法唯一匹配时返回候选，不自动猜测。
+### location_aliases
+
+地点别名单独存表，通过 `location_id` 指向标准地点，并对 `(location_id, normalized_alias)` 建立唯一约束。`normalized_alias` 可关联多个地点，用于表达“张江”等真实歧义；无法唯一匹配时返回候选，不自动猜测。
 
 ### commute_results
 
