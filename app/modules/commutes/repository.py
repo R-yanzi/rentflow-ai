@@ -1,9 +1,10 @@
 """通勤缓存数据访问层。"""
 
 from datetime import datetime
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.commutes.models import CommuteCacheEntry
@@ -39,7 +40,7 @@ class CommuteCacheRepository:
 
         return result.scalar_one_or_none()
 
-    async def create(
+    async def upsert(
         self,
         session: AsyncSession,
         *,
@@ -49,30 +50,46 @@ class CommuteCacheRepository:
         result: CommuteResult,
         expires_at: datetime,
     ) -> CommuteCacheEntry:
-        """创建缓存记录，但不提交事务。
+        """原子创建或刷新缓存，但不提交事务。
 
-        事务边界由 Service 控制，使“Provider 计算 + 缓存写入”
-        能够按照完整业务流程统一处理异常。
+        PostgreSQL ON CONFLICT 同时处理两种情况：
+
+        1. 已过期记录仍占用唯一指纹时，更新原记录；
+        2. 两个并发请求同时写入时，由数据库原子合并。
         """
 
-        entry = CommuteCacheEntry(
-            listing_id=listing_id,
-            destination_location_id=destination_location_id,
-            request_fingerprint=request_fingerprint,
-            mode=result.mode.value,
-            distance_meters=result.distance_meters,
-            duration_minutes=result.duration_minutes,
-            provider=result.provider,
-            is_estimated=result.is_estimated,
-            calculated_at=result.calculated_at,
-            expires_at=expires_at,
+        statement = (
+            insert(CommuteCacheEntry)
+            .values(
+                id=uuid4(),
+                listing_id=listing_id,
+                destination_location_id=destination_location_id,
+                request_fingerprint=request_fingerprint,
+                mode=result.mode.value,
+                distance_meters=result.distance_meters,
+                duration_minutes=result.duration_minutes,
+                provider=result.provider,
+                is_estimated=result.is_estimated,
+                calculated_at=result.calculated_at,
+                expires_at=expires_at,
+            )
+            .on_conflict_do_update(
+                constraint="uq_commute_cache_entries_request_fingerprint",
+                set_={
+                    "listing_id": listing_id,
+                    "destination_location_id": destination_location_id,
+                    "mode": result.mode.value,
+                    "distance_meters": result.distance_meters,
+                    "duration_minutes": result.duration_minutes,
+                    "provider": result.provider,
+                    "is_estimated": result.is_estimated,
+                    "calculated_at": result.calculated_at,
+                    "expires_at": expires_at,
+                },
+            )
+            .returning(CommuteCacheEntry)
         )
 
-        session.add(entry)
+        execution_result = await session.execute(statement)
 
-        # flush 会执行 INSERT 并触发唯一约束，
-        # 但不会在 Repository 内提前提交事务。
-        await session.flush()
-        await session.refresh(entry)
-
-        return entry
+        return execution_result.scalar_one()

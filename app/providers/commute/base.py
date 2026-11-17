@@ -69,6 +69,10 @@ class CommuteProvider(Protocol):
     后续替换实现时不需要修改搜索和排序逻辑。
     """
 
+    # Service 在调用 Provider 前就需要生成缓存指纹，
+    # 因此 Provider 必须提前公开稳定且带版本的名称。
+    provider_name: str
+
     async def calculate(self, request: CommuteRequest) -> CommuteResult:
         """计算单条通勤路线。"""
         ...

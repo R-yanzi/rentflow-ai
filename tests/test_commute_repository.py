@@ -73,16 +73,33 @@ async def test_get_valid_cache_filters_fingerprint_and_expiry() -> None:
 
 
 @pytest.mark.anyio
-async def test_create_maps_provider_result_without_committing() -> None:
-    """Repository 应映射结果并 flush，但不能自行提交事务。"""
+async def test_upsert_uses_on_conflict_without_committing() -> None:
+    """缓存写入应使用 ON CONFLICT，但不能自行提交事务。"""
 
     repository = CommuteCacheRepository()
     session_mock = AsyncMock(spec=AsyncSession)
+    execute_result = MagicMock()
 
     calculated_at = datetime(2026, 11, 17, 8, 0, tzinfo=UTC)
     expires_at = calculated_at + timedelta(hours=24)
 
-    entry = await repository.create(
+    returned_entry = CommuteCacheEntry(
+        listing_id=LISTING_ID,
+        destination_location_id=DESTINATION_ID,
+        request_fingerprint=FINGERPRINT,
+        mode="transit",
+        distance_meters=8_500,
+        duration_minutes=32,
+        provider="local_estimate_v1",
+        is_estimated=True,
+        calculated_at=calculated_at,
+        expires_at=expires_at,
+    )
+
+    execute_result.scalar_one.return_value = returned_entry
+    session_mock.execute.return_value = execute_result
+
+    entry = await repository.upsert(
         cast(AsyncSession, session_mock),
         listing_id=LISTING_ID,
         destination_location_id=DESTINATION_ID,
@@ -91,18 +108,18 @@ async def test_create_maps_provider_result_without_committing() -> None:
         expires_at=expires_at,
     )
 
-    assert entry.listing_id == LISTING_ID
-    assert entry.destination_location_id == DESTINATION_ID
-    assert entry.request_fingerprint == FINGERPRINT
-    assert entry.mode == "transit"
-    assert entry.distance_meters == 8_500
-    assert entry.duration_minutes == 32
-    assert entry.provider == "local_estimate_v1"
-    assert entry.is_estimated is True
-    assert entry.calculated_at == calculated_at
-    assert entry.expires_at == expires_at
+    assert entry is returned_entry
 
-    session_mock.add.assert_called_once_with(entry)
-    session_mock.flush.assert_awaited_once()
-    session_mock.refresh.assert_awaited_once_with(entry)
+    statement = session_mock.execute.await_args.args[0]
+    statement_text = str(statement)
+
+    assert "INSERT INTO commute_cache_entries" in statement_text
+    assert "ON CONFLICT" in statement_text
+    assert "DO UPDATE SET" in statement_text
+    assert "RETURNING" in statement_text
+
+    session_mock.execute.assert_awaited_once()
+    session_mock.add.assert_not_called()
+    session_mock.flush.assert_not_awaited()
+    session_mock.refresh.assert_not_awaited()
     session_mock.commit.assert_not_awaited()
