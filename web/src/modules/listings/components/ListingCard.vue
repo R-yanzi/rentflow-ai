@@ -4,8 +4,18 @@ import { computed } from 'vue'
 
 import type { Listing } from '@/modules/listings/types'
 
-const props = defineProps<{
-  listing: Listing
+const props = withDefaults(
+  defineProps<{
+    listing: Listing
+    selected?: boolean
+  }>(),
+  {
+    selected: false,
+  },
+)
+
+const emit = defineEmits<{
+  select: [listingId: string]
 }>()
 
 const roomLabel = computed(() => {
@@ -22,85 +32,98 @@ const areaLabel = computed(() => {
 </script>
 
 <template>
-  <el-card class="listing-card" shadow="hover">
-    <template #header>
-      <div class="listing-card__header">
-        <div>
-          <h3>{{ listing.title }}</h3>
+  <article
+    class="listing-card-wrapper"
+    :class="{
+      'listing-card-wrapper--selected': selected,
+    }"
+    @mouseenter="emit('select', listing.id)"
+    @focusin="emit('select', listing.id)"
+  >
+    <el-card class="listing-card" shadow="hover">
+      <template #header>
+        <div class="listing-card__header">
+          <div>
+            <h3>{{ listing.title }}</h3>
 
-          <p>
-            <el-icon><Location /></el-icon>
-            {{ listing.district }} · {{ listing.area }}
-          </p>
+            <p>
+              <el-icon><Location /></el-icon>
+              {{ listing.district }} · {{ listing.area }}
+            </p>
+          </div>
+
+          <el-tag type="info" effect="plain">演示合成数据</el-tag>
+        </div>
+      </template>
+
+      <div class="listing-card__price">
+        <strong>¥{{ rentLabel }}</strong>
+        <span>/ 月</span>
+      </div>
+
+      <dl class="listing-card__facts">
+        <div>
+          <dt>户型</dt>
+          <dd>{{ roomLabel }}</dd>
         </div>
 
-        <el-tag type="info" effect="plain">演示合成数据</el-tag>
+        <div>
+          <dt>面积</dt>
+          <dd>{{ areaLabel }} ㎡</dd>
+        </div>
+
+        <div>
+          <dt>楼层</dt>
+          <dd>{{ listing.floor ?? '未知' }}</dd>
+        </div>
+
+        <div>
+          <dt>朝向</dt>
+          <dd>{{ listing.orientation ?? '未知' }}</dd>
+        </div>
+      </dl>
+
+      <p class="listing-card__description">
+        {{ listing.description }}
+      </p>
+
+      <div class="listing-card__tags">
+        <el-tag :type="listing.pets_allowed ? 'success' : 'info'" size="small">
+          {{ listing.pets_allowed ? '允许养宠' : '不允许养宠' }}
+        </el-tag>
+
+        <el-tag
+          v-if="listing.subway_distance_m !== null"
+          type="primary"
+          size="small"
+          effect="plain"
+        >
+          <el-icon><Van /></el-icon>
+          距地铁约 {{ listing.subway_distance_m }} 米
+        </el-tag>
+
+        <el-tag v-if="listing.near_main_road" type="warning" size="small" effect="plain">
+          靠近主干道
+        </el-tag>
       </div>
-    </template>
-
-    <div class="listing-card__price">
-      <strong>¥{{ rentLabel }}</strong>
-      <span>/ 月</span>
-    </div>
-
-    <dl class="listing-card__facts">
-      <div>
-        <dt>户型</dt>
-        <dd>{{ roomLabel }}</dd>
-      </div>
-
-      <div>
-        <dt>面积</dt>
-        <dd>{{ areaLabel }} ㎡</dd>
-      </div>
-
-      <div>
-        <dt>楼层</dt>
-        <dd>{{ listing.floor ?? '未知' }}</dd>
-      </div>
-
-      <div>
-        <dt>朝向</dt>
-        <dd>{{ listing.orientation ?? '未知' }}</dd>
-      </div>
-    </dl>
-
-    <p class="listing-card__description">
-      {{ listing.description }}
-    </p>
-
-    <div class="listing-card__tags">
-      <el-tag :type="listing.pets_allowed ? 'success' : 'info'" size="small">
-        {{ listing.pets_allowed ? '允许养宠' : '不允许养宠' }}
-      </el-tag>
-
-      <el-tag v-if="listing.subway_distance_m !== null" type="primary" size="small" effect="plain">
-        <el-icon><Van /></el-icon>
-        距地铁约 {{ listing.subway_distance_m }} 米
-      </el-tag>
-
-      <el-tag v-if="listing.near_main_road" type="warning" size="small" effect="plain">
-        靠近主干道
-      </el-tag>
-    </div>
-  </el-card>
-  <RouterLink
-    class="detail-link"
-    :to="{
-      name: 'listing-detail',
-      params: {
-        id: listing.id,
-      },
-    }"
-  >
-    查看房源详情
-    <el-icon><ArrowRight /></el-icon>
-  </RouterLink>
+    </el-card>
+    <RouterLink
+      class="detail-link"
+      :to="{
+        name: 'listing-detail',
+        params: {
+          id: listing.id,
+        },
+      }"
+    >
+      查看房源详情
+      <el-icon><ArrowRight /></el-icon>
+    </RouterLink>
+  </article>
 </template>
 
 <style scoped>
 .listing-card {
-  height: 100%;
   border-radius: 14px;
 }
 
@@ -204,5 +227,23 @@ const areaLabel = computed(() => {
 .detail-link:hover {
   color: #fff;
   background: var(--el-color-primary);
+}
+
+.listing-card-wrapper {
+  padding: 3px;
+  border: 2px solid transparent;
+  border-radius: 16px;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.listing-card-wrapper--selected {
+  border-color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+}
+
+.listing-card-wrapper .listing-card {
+  height: auto;
 }
 </style>

@@ -6,6 +6,13 @@
  */
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string
+
+  /**
+   * 开发环境默认使用 OSM raster tiles。
+   * 正式环境可以切换到商业或自建瓦片服务。
+   */
+  readonly VITE_MAP_TILE_URL?: string
+  readonly VITE_MAP_ATTRIBUTION?: string
 }
 
 interface ImportMeta {

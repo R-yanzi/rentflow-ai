@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowLeft } from '@element-plus/icons-vue'
-import { ref, watch } from 'vue'
+import { defineAsyncComponent, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import ListingCard from '@/modules/listings/components/ListingCard.vue'
@@ -8,6 +8,16 @@ import RequirementChips from '@/modules/search/components/RequirementChips.vue'
 import { searchConfirmedListings } from '@/modules/search/api'
 import { requirementsToQuery, searchStateFromQuery } from '@/modules/search/query'
 import type { NaturalLanguageSearchResponse, RentalRequirements } from '@/modules/search/types'
+
+/**
+ * MapLibre 体积较大，单独异步加载。
+ *
+ * 搜索结果页可以先展示条件和房源列表，
+ * 不必等待地图库下载完成。
+ */
+const ListingMap = defineAsyncComponent(
+  () => import('@/modules/listings/components/ListingMap.vue'),
+)
 
 const PAGE_SIZE = 20
 
@@ -19,6 +29,15 @@ const errorMessage = ref('')
 const searchResult = ref<NaturalLanguageSearchResponse | null>(null)
 const currentRequirements = ref<RentalRequirements | null>(null)
 const currentPage = ref(1)
+/**
+ * 只保存当前页面选中的房源 ID。
+ * 房源事实仍然来自后端响应，不复制到新的状态对象中。
+ */
+const selectedListingId = ref<string | null>(null)
+
+function handleListingSelect(listingId: string): void {
+  selectedListingId.value = listingId
+}
 
 /**
  * 从当前 URL 恢复条件并查询对应页。
@@ -35,11 +54,25 @@ async function loadResults(): Promise<void> {
   errorMessage.value = ''
 
   try {
-    searchResult.value = await searchConfirmedListings({
+    const result = await searchConfirmedListings({
       requirements: routeState.requirements,
       limit: PAGE_SIZE,
       offset: (routeState.page - 1) * PAGE_SIZE,
     })
+
+    searchResult.value = result
+
+    /**
+     * 翻页后，如果原选中房源不在新一页中，
+     * 清除选中状态，避免地图保留一个不存在的 ID。
+     */
+    const selectedStillExists =
+      selectedListingId.value !== null &&
+      result.results.items.some((listing) => listing.id === selectedListingId.value)
+
+    if (!selectedStillExists) {
+      selectedListingId.value = null
+    }
   } catch {
     searchResult.value = null
     errorMessage.value = '房源加载失败，请检查后端和数据库服务后重试。'
@@ -121,11 +154,22 @@ watch(
           show-icon
         />
 
-        <div v-if="searchResult.results.items.length > 0" class="listing-grid">
-          <ListingCard
-            v-for="listing in searchResult.results.items"
-            :key="listing.id"
-            :listing="listing"
+        <div v-if="searchResult.results.items.length > 0" class="results-layout">
+          <div class="listing-grid">
+            <ListingCard
+              v-for="listing in searchResult.results.items"
+              :key="listing.id"
+              :listing="listing"
+              :selected="listing.id === selectedListingId"
+              @select="handleListingSelect"
+            />
+          </div>
+
+          <ListingMap
+            class="results-map"
+            :listings="searchResult.results.items"
+            :selected-listing-id="selectedListingId"
+            @select="handleListingSelect"
           />
         </div>
 
@@ -214,11 +258,25 @@ watch(
   color: #909399;
 }
 
+.results-layout {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.05fr)
+    minmax(380px, 0.95fr);
+  gap: 24px;
+  align-items: start;
+  margin-top: 24px;
+}
+
 .listing-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
   gap: 20px;
-  margin-top: 24px;
+}
+
+.results-map {
+  position: sticky;
+  top: 24px;
 }
 
 .results-pagination {
@@ -226,13 +284,18 @@ watch(
   margin-top: 32px;
 }
 
-@media (width <= 760px) {
-  .results-page__heading {
-    flex-direction: column;
+@media (width <= 1000px) {
+  .results-layout {
+    grid-template-columns: 1fr;
   }
 
-  .listing-grid {
-    grid-template-columns: 1fr;
+  .results-map {
+    position: static;
+    order: -1;
+  }
+
+  .results-page__heading {
+    flex-direction: column;
   }
 }
 </style>
