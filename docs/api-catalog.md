@@ -104,8 +104,9 @@
 | GET | `/locations/search` | 无 | 搜索上海地点目录 | 已完成 |
 | GET | `/locations/{location_id}` | 无 | 地点详情与坐标 | 已完成 |
 | POST | `/locations/resolve` | 无 | 文本地点标准化与歧义候选 | 已完成 |
-| POST | `/commutes/estimate` | 用户 | 估算单条通勤 | 待开发 |
-| POST | `/commutes/batch` | 内部 | 批量计算候选房源通勤 | 待开发 |
+| POST | `/commutes/calculate` | 无 | 批量计算 1～50 套房源到标准地点的通勤 | 已完成 |
+
+`/commutes/calculate` 接收不重复的房源 UUID、标准地点 UUID 和交通方式。响应保持房源输入顺序，包含距离、时间、Provider、是否估算、计算时间、过期时间和缓存命中状态。未知地点或房源返回带 Request ID 和机器可读 `details` 的标准 404。
 
 ## 8. 排序、对比与收藏
 
