@@ -1,6 +1,7 @@
 """汇总所有 ORM 模型，供 Alembic 自动检测。"""
 
 from app.db.base import Base
+from app.modules.commutes.models import CommuteCacheEntry
 from app.modules.listings.models import Listing
 from app.modules.locations.models import Location, LocationAlias
 
@@ -11,4 +12,5 @@ __all__ = [
     "Listing",
     "Location",
     "LocationAlias",
+    "CommuteCacheEntry",
 ]
