@@ -19,6 +19,12 @@ const ListingMap = defineAsyncComponent(
   () => import('@/modules/listings/components/ListingMap.vue'),
 )
 
+/**
+ * 移动端屏幕一次只展示一种主要内容，
+ * 用户可以在房源列表和地图之间切换。
+ */
+type MobileResultView = 'list' | 'map'
+
 const PAGE_SIZE = 20
 
 const route = useRoute()
@@ -29,6 +35,13 @@ const errorMessage = ref('')
 const searchResult = ref<NaturalLanguageSearchResponse | null>(null)
 const currentRequirements = ref<RentalRequirements | null>(null)
 const currentPage = ref(1)
+
+/**
+ * 移动端默认先展示列表，保证地图加载失败时
+ * 用户仍然可以正常浏览和进入房源详情。
+ */
+const mobileResultView = ref<MobileResultView>('list')
+
 /**
  * 只保存当前页面选中的房源 ID。
  * 房源事实仍然来自后端响应，不复制到新的状态对象中。
@@ -154,8 +167,34 @@ watch(
           show-icon
         />
 
+        <div
+          v-if="searchResult.results.items.length > 0"
+          class="mobile-view-switch"
+          role="group"
+          aria-label="搜索结果展示方式"
+        >
+          <el-button
+            :type="mobileResultView === 'list' ? 'primary' : 'default'"
+            :aria-pressed="mobileResultView === 'list'"
+            @click="mobileResultView = 'list'"
+          >
+            房源列表
+          </el-button>
+
+          <el-button
+            :type="mobileResultView === 'map' ? 'primary' : 'default'"
+            :aria-pressed="mobileResultView === 'map'"
+            @click="mobileResultView = 'map'"
+          >
+            地图
+          </el-button>
+        </div>
+
         <div v-if="searchResult.results.items.length > 0" class="results-layout">
-          <div class="listing-grid">
+          <div
+            class="listing-grid"
+            :class="{ 'results-pane--mobile-hidden': mobileResultView !== 'list' }"
+          >
             <ListingCard
               v-for="listing in searchResult.results.items"
               :key="listing.id"
@@ -167,6 +206,7 @@ watch(
 
           <ListingMap
             class="results-map"
+            :class="{ 'results-pane--mobile-hidden': mobileResultView !== 'map' }"
             :listings="searchResult.results.items"
             :selected-listing-id="selectedListingId"
             @select="handleListingSelect"
@@ -284,6 +324,10 @@ watch(
   margin-top: 32px;
 }
 
+.mobile-view-switch {
+  display: none;
+}
+
 @media (width <= 1000px) {
   .results-layout {
     grid-template-columns: 1fr;
@@ -296,6 +340,26 @@ watch(
 
   .results-page__heading {
     flex-direction: column;
+  }
+}
+
+@media (width <= 760px) {
+  .mobile-view-switch {
+    display: flex;
+    margin-top: 24px;
+  }
+
+  .mobile-view-switch :deep(.el-button) {
+    flex: 1;
+  }
+
+  /**
+   * 只在移动端隐藏未选中的面板。
+   * 桌面端即使 mobileResultView 默认为 list，
+   * 列表和地图仍然会同时显示。
+   */
+  .results-pane--mobile-hidden {
+    display: none;
   }
 }
 </style>

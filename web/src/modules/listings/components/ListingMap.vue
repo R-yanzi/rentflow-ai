@@ -2,7 +2,7 @@
 import type { FeatureCollection, Point } from 'geojson'
 import { GeoJSONSource, LngLatBounds, Map as MapLibreMap, NavigationControl } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import type { Listing } from '@/modules/listings/types'
 import { createBaseMapStyle, SHANGHAI_CENTER } from '@/modules/map/config'
@@ -36,6 +36,13 @@ const mapContainer = ref<HTMLDivElement | null>(null)
 const mapError = ref('')
 
 let map: MapLibreMap | null = null
+
+/**
+ * 地图容器从隐藏状态恢复显示时，宽高会发生变化。
+ * ResizeObserver 负责通知 MapLibre 重新计算画布尺寸，
+ * 避免移动端切换到地图后出现空白或地图只占一部分。
+ */
+let mapResizeObserver: ResizeObserver | null = null
 
 /**
  * 将后端房源响应转换为标准 GeoJSON。
@@ -156,6 +163,18 @@ onMounted(() => {
     },
   })
 
+  mapResizeObserver = new ResizeObserver(() => {
+    /**
+     * 等待 Vue 和浏览器完成当前布局更新，
+     * 再让地图读取最新的容器宽高。
+     */
+    void nextTick(() => {
+      map?.resize()
+    })
+  })
+
+  mapResizeObserver.observe(mapContainer.value)
+
   map.addControl(
     new NavigationControl({
       showCompass: false,
@@ -244,6 +263,9 @@ watch(
 )
 
 onBeforeUnmount(() => {
+  mapResizeObserver?.disconnect()
+  mapResizeObserver = null
+
   map?.remove()
   map = null
 })
