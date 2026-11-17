@@ -68,6 +68,29 @@ class ListingRepository:
         """根据主键查询房源。"""
         return await session.get(Listing, listing_id)
 
+    async def get_by_ids(
+        self,
+        session: AsyncSession,
+        listing_ids: list[UUID],
+    ) -> list[Listing]:
+        """使用一次 SQL 查询批量读取房源。
+
+        Repository 不负责恢复调用方输入顺序，
+        因为 SQL 的 IN 查询本身不保证返回顺序。
+        顺序恢复和缺失房源判断属于 Service 的业务职责。
+        """
+
+        if not listing_ids:
+            return []
+
+        statement = select(Listing).where(
+            Listing.id.in_(listing_ids),
+        )
+
+        result = await session.execute(statement)
+
+        return list(result.scalars().all())
+
     async def search(
         self,
         session: AsyncSession,
