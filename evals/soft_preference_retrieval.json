@@ -1,0 +1,77 @@
+{
+  "version": "soft-preference-v1",
+  "documents": [
+    {
+      "id": "quiet_inner_compound",
+      "text": "房源位于小区内部，远离主干道，夜间环境安静，适合需要稳定休息的人。",
+      "traits": ["安静", "远离道路"]
+    },
+    {
+      "id": "lively_roadside",
+      "text": "房源靠近商业街和主干道，楼下餐饮丰富，夜间较为热闹，出行方便。",
+      "traits": ["热闹", "生活便利"]
+    },
+    {
+      "id": "bright_south_facing",
+      "text": "客厅和卧室朝南，白天日照时间较长，室内明亮，通风条件良好。",
+      "traits": ["采光好", "南向", "通风"]
+    },
+    {
+      "id": "dim_north_facing",
+      "text": "房间朝北，直接日照较少，室内整体偏暗，夏季相对凉爽。",
+      "traits": ["日照少", "凉爽"]
+    },
+    {
+      "id": "compact_single_living",
+      "text": "紧凑型开间，收纳和生活功能齐全，打理成本较低，适合一个人居住。",
+      "traits": ["适合独居", "易打理"]
+    },
+    {
+      "id": "spacious_family_home",
+      "text": "三室两厅，公共活动空间充足，卧室相互独立，适合家庭长期居住。",
+      "traits": ["适合家庭", "空间宽敞"]
+    },
+    {
+      "id": "pet_friendly_home",
+      "text": "房东允许饲养猫狗，小区内有步行空间，对携带宠物的租客友好。",
+      "traits": ["宠物友好", "适合养猫", "适合养狗"]
+    },
+    {
+      "id": "no_pets_allowed",
+      "text": "房屋维护要求严格，租赁期间不允许饲养任何宠物。",
+      "traits": ["禁止宠物"]
+    }
+  ],
+  "queries": [
+    {
+      "id": "query_quiet_sleep",
+      "text": "我睡眠比较浅，希望晚上不要太吵",
+      "relevant_document_ids": ["quiet_inner_compound"]
+    },
+    {
+      "id": "query_good_natural_light",
+      "text": "想要阳光充足、白天不用一直开灯的房子",
+      "relevant_document_ids": ["bright_south_facing"]
+    },
+    {
+      "id": "query_live_alone",
+      "text": "一个人住，希望面积不用太大而且容易收拾",
+      "relevant_document_ids": ["compact_single_living"]
+    },
+    {
+      "id": "query_family_space",
+      "text": "一家人长期住，需要多个独立房间和较大的活动空间",
+      "relevant_document_ids": ["spacious_family_home"]
+    },
+    {
+      "id": "query_cat_allowed",
+      "text": "我养了一只猫，希望房东能够接受宠物",
+      "relevant_document_ids": ["pet_friendly_home"]
+    },
+    {
+      "id": "query_lively_convenient",
+      "text": "喜欢楼下热闹一些，吃饭购物和出行都方便",
+      "relevant_document_ids": ["lively_roadside"]
+    }
+  ]
+}
