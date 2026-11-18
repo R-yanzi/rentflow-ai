@@ -166,7 +166,7 @@
 - 模型版本与内容哈希；
 - 向量索引。
 
-当前进度：M3.3A 已完成 `soft-preference-v1` 评测基线，包含 8 条受控房源文本、6 条自然语言查询，以及 ID 唯一性、相关文档引用和安静/采光/独居/宠物等核心语义覆盖测试。下一步建立统一 Embedding Provider、Recall@K 与 MRR 离线评测，再根据结果确定模型和向量维度；在此之前不创建 pgvector 字段。
+当前进度：M3.3A 已完成 `soft-preference-v1` 评测基线；M3.3B 已完成模型无关的 Embedding Provider 协议、Recall@K、MRR、非法排名保护和候选模型选型记录。第一轮对比 `Qwen/Qwen3-Embedding-0.6B` 的 512/768/1024 维与 `BAAI/bge-m3` 的 1024 维；在实际评测完成前不创建 pgvector 字段。
 
 ### M3.4 多目标排序
 

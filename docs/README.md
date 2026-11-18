@@ -61,7 +61,8 @@ requirements
 - 已完成：M3.2C 稳定请求指纹、原子 Upsert Repository、单条缓存 Service 与生命周期测试；
 - 已完成：M3.2D 房源到标准地点的顺序稳定批量计算、领域错误与 HTTP API；
 - 已完成：M3.3A 版本化软偏好检索评测集、引用完整性与核心语义覆盖测试；
-- 当前目标：实现统一 Embedding Provider 和离线评测指标，对比候选模型；
+- 已完成：M3.3B 统一 Embedding Provider、Recall@K/MRR 指标与候选模型选型记录；
+- 当前目标：接入 Qwen3-Embedding-0.6B 和 BGE-M3，运行相同数据集的离线对比；
 - 下一里程碑：M3 软偏好检索、多目标排序与无结果诊断；
 - 当前不做：多 Agent、预约、认证、完整 RAG 管理后台。
 
